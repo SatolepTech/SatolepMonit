@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-import { configDotenv } from 'dotenv'
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const { configDotenv } = require('dotenv')
 
 configDotenv()
 
