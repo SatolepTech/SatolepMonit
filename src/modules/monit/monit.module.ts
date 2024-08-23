@@ -15,6 +15,7 @@ const useCases = [
 
 @Module({
   controllers: [MonitController],
+  imports: [MonitCron],
   providers: [MonitService, ...useCases]
 })
 export class MonitModule {}
