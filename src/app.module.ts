@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { MonitModule } from './modules/monit/monit.module'
 
 @Module({
   controllers: [AppController],
@@ -11,6 +12,7 @@ import { AppService } from './app.service'
       envFilePath: '.env',
       isGlobal: true
     }),
+    MonitModule,
   ],
   providers: [AppService]
 })
