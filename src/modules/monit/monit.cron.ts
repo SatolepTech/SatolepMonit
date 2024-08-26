@@ -52,10 +52,9 @@ export class MonitCron {
         const ram = status.ram
 
         if (
-          (cpu > warningValue ||
-            disk > warningValue ||
-            ram > warningValue) &&
-          type !== DiscordWebhookPayloadType.Danger
+          cpu > warningValue ||
+          disk > warningValue ||
+          ram > warningValue
         ) {
           icon = warningIcon
           type = DiscordWebhookPayloadType.Alert
