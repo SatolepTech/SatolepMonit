@@ -8,7 +8,7 @@ import { DiscordWebhookPayloadType } from 'src/domain/discord'
 import { MonitResponse } from 'src/domain/monit'
 
 export class MonitCron {
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async serverStatusCron() {
     const envData = await env()
     if (!envData.monitURLs) return
