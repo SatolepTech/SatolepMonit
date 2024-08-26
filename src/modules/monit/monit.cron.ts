@@ -8,7 +8,7 @@ import { DiscordWebhookPayloadType } from 'src/domain/discord'
 import { MonitResponse } from 'src/domain/monit'
 
 export class MonitCron {
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async serverStatusCron() {
     const envData = await env()
     if (!envData.monitURLs) return
@@ -52,9 +52,10 @@ export class MonitCron {
         const ram = status.ram
 
         if (
-          cpu > warningValue ||
-          disk > warningValue ||
-          ram > warningValue
+          (cpu > warningValue ||
+            disk > warningValue ||
+            ram > warningValue) &&
+          type !== DiscordWebhookPayloadType.Danger
         ) {
           icon = warningIcon
           type = DiscordWebhookPayloadType.Alert
@@ -107,13 +108,46 @@ export class MonitCron {
 
     const discord = new DiscordMessageBuilder()
 
-    discord.sendMessage({
-      field: {
-        name: 'Servidores:',
-        value: values.join('\n') + dangersMessage + notGetDataMessage
-      },
-      title: envData.discord.title,
-      type
-    })
+    const splitArray = []
+    const subarrayLength = 5
+
+    for (let i = 0; i < values.length; i += subarrayLength) {
+      const subarray = values.slice(i, i + subarrayLength)
+      splitArray.push(subarray)
+    }
+
+    for (let index = 0; index < splitArray.length; index++) {
+      const array = splitArray[index]
+      await discord.sendMessage({
+        field: {
+          name: `Status - Parte ${index + 1} / ${splitArray.length}:`,
+          value: array.join('\n')
+        },
+        title: envData.discord.title,
+        type
+      })
+    }
+
+    if (dangersMessage) {
+      await discord.sendMessage({
+        field: {
+          name: 'Uso alto de recursos:',
+          value: dangersMessage
+        },
+        title: envData.discord.title,
+        type
+      })
+    }
+
+    if (notGetDataMessage) {
+      discord.sendMessage({
+        field: {
+          name: 'Não foi possível recuperar informações:',
+          value: notGetDataMessage
+        },
+        title: envData.discord.title,
+        type
+      })
+    }
   }
 }
