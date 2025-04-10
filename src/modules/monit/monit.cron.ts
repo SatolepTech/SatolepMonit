@@ -30,6 +30,51 @@ export class MonitCron {
     Success: ':white_check_mark:'
   }
 
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async serverHealthCron() {
+    const envData = await env()
+
+    const result = await this.serverService.getServers()
+    if (!result || !result.success) return
+
+    const initialServers = result.data
+    const reachableServers: ServerDTO[] = []
+    const unareachableServers: ServerDTO[] = []
+
+    for (let index = 0; index < initialServers.length; index++) {
+      const server = initialServers[index]
+
+      const route = server.Route
+      if (!route) continue
+
+      try {
+        const resultHealth: HealthResponse = await client({
+          url: `${server.url}/${route.health}`
+        })
+
+        if (!resultHealth || !resultHealth.success) {
+          unareachableServers.push(server)
+          continue
+        }
+
+        reachableServers.push(server)
+      } catch (error) {
+        unareachableServers.push(server)
+        logError({
+          archive: 'src/modules/monit/monit.cron.ts',
+          error,
+          usedFunction: 'serverHealthCron'
+        })
+      }
+    }
+
+    await this.sendStatusReachableServersMessage({ reachableServers })
+    await this.sendStatusUnareachableServersMessage({
+      panicErrorsUsers: envData.discord.panicErrorsUsers,
+      unareachableServers
+    })
+  }
+
   @Cron(CronExpression.EVERY_30_MINUTES)
   async serverStatusCron() {
     const envData = await env()
@@ -275,5 +320,70 @@ export class MonitCron {
       })
     }
   }
+
+  private async sendStatusReachableServersMessage({
+    reachableServers
+  }: {
+    reachableServers: ServerDTO[]
+  }) {
+    if (reachableServers.length > 0) {
+      const servers = reachableServers.filter(
+        server => server.errors > 0
+      )
+
+      if (servers && servers.length > 0) {
+        const serversId = servers.map(server => server.id)
+
+        this.serverService.updateServers({
+          ids: serversId,
+          errors: 0
+        })
+      }
+    }
+  }
+
+  private async sendStatusUnareachableServersMessage({
+    panicErrorsUsers,
+    unareachableServers
+  }: {
+    panicErrorsUsers: string
+    unareachableServers: ServerDTO[]
+  }) {
+    if (unareachableServers.length > 0) {
+      const servers = unareachableServers.filter(
+        server => server.errors < 5
+      )
+
+      if (servers && servers.length > 0) {
+        await this.discord.sendMessage({
+          field: {
+            name: `Atenção ${panicErrorsUsers}`,
+            value: 'Servidor(es) fora do ar ou inalcançável(is)'
+          },
+          title: 'Urgência!',
+          type: DiscordWebhookPayloadType.Danger
+        })
+
+        for (let index = 0; index < servers.length; index++) {
+          const server = servers[index]
+
+          if (server.errors < 5) {
+            await this.discord.sendMessage({
+              field: {
+                name: server.name,
+                value: `Servidor ${server.name} (${server.ip}) está fora do ar ou inalcançável`
+              },
+              title: 'Health Status',
+              type: DiscordWebhookPayloadType.Danger
+            })
+
+            this.serverService.updateServer({
+              id: server.id,
+              errors: server.errors + 1
+            })
+          }
+        }
+      }
+    }
   }
 }
