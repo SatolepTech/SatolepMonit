@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { PrismaModule } from './modules/_infra/prisma/prisma.module'
 import { MonitModule } from './modules/monit/monit.module'
 
 @Module({
@@ -14,7 +15,8 @@ import { MonitModule } from './modules/monit/monit.module'
       isGlobal: true
     }),
     MonitModule,
-    ScheduleModule.forRoot()
+    PrismaModule,
+    ScheduleModule.forRoot(),
   ],
   providers: [AppService]
 })
