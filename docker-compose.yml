@@ -1,0 +1,20 @@
+services:
+  satolep-monit-db:
+    container_name: satolep-monit-db
+    image: "postgres:17.2-alpine"
+    environment:
+      - "POSTGRES_USER=${DATABASE_USER}"
+      - "POSTGRES_DB=${DATABASE_NAME}"
+      - "POSTGRES_PASSWORD=${DATABASE_PASSWORD}"
+    expose:
+      - "${DATABASE_PORT}"
+    ports:
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+    networks:
+      - satolep-monit
+
+networks:
+  satolep-monit:
+    name: satolep-monit
