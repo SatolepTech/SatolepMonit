@@ -11,6 +11,9 @@ export class GetServersUseCase {
     const data = await this.prisma.server.findMany({
       include: {
         Route: true
+      },
+      where: {
+        deletedAt: null
       }
     })
 
