@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 
+import { ServerModule } from '../server/server.module'
 import { MonitController } from './monit.controller'
 import { MonitCron } from './monit.cron'
 import { MonitService } from './monit.service'
@@ -15,7 +16,7 @@ const useCases = [
 
 @Module({
   controllers: [MonitController],
-  imports: [MonitCron],
-  providers: [MonitService, ...useCases]
+  imports: [ServerModule],
+  providers: [MonitCron, MonitService, ...useCases]
 })
 export class MonitModule {}

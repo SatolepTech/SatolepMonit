@@ -6,6 +6,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { PrismaModule } from './modules/_infra/prisma/prisma.module'
 import { MonitModule } from './modules/monit/monit.module'
+import { ServerModule } from './modules/server/server.module'
 
 @Module({
   controllers: [AppController],
@@ -17,6 +18,7 @@ import { MonitModule } from './modules/monit/monit.module'
     MonitModule,
     PrismaModule,
     ScheduleModule.forRoot(),
+    ServerModule
   ],
   providers: [AppService]
 })
