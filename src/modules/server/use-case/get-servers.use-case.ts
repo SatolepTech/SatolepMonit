@@ -1,28 +1,13 @@
 import { Injectable } from '@nestjs/common'
 
+import { ServerDTO } from 'src/domain/server'
 import { PrismaService } from 'src/modules/_infra/prisma/prisma.service'
 
 @Injectable()
 export class GetServersUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(): Promise<
-    SuccessDto<
-      {
-        id: number
-        errors: number
-        ip: string
-        name: string
-        slug: string
-        token: string
-        url: string
-        Route: {
-          health: string
-          monit: string
-        }
-      }[]
-    >
-  > {
+  async execute(): Promise<SuccessDto<ServerDTO[]>> {
     const data = await this.prisma.server.findMany({
       include: {
         Route: true
