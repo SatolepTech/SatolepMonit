@@ -73,8 +73,6 @@ export class DiscordMessageBuilder {
         success: true
       }
     } catch (error) {
-      console.log(error)
-
       logError({
         archive:
           'src/modules/_infra/discord-webhook/discord-message.builder.ts',
